@@ -125,7 +125,6 @@ void setup() {
   eLED.init();
   eLED.on();
   Serial.begin(BAUDRATE);
-  delay(100);
   eMenu.init(Serial);
   eMenu.version = {1, 2, 3};
 

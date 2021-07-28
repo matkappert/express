@@ -306,6 +306,12 @@ void express_console_menu::init(Print &printer) {
   _printer   = &printer;
   _stream    = (Stream *)&printer;
 
+  for (uint8_t t = 2; t > 0; t--) {
+    Serial.printf("[SETUP] WAIT %d...\n", t);
+    Serial.flush();
+    delay(1000);
+  }
+
   delay(100);
   v().pln();
   v().pln();
