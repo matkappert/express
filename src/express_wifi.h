@@ -47,9 +47,6 @@ using std::vector;
     #include <WiFi.h>
   #endif
 
-const int MAX_SSID = 32;  // max number of characters in WiFi SSID
-const int MAX_PWD  = 64;  // max number of characters in WiFi Password
-
 struct express_wifi {
  private:
   typedef uint32_t nvs_handle_t;
@@ -57,8 +54,8 @@ struct express_wifi {
 
  public:
   struct wifiData_t {
-    char ssid[MAX_SSID + 1] = "\0";
-    char pwd[MAX_PWD + 1]   = "\0";
+    char ssid[WIFI_SSID_MAX_LENGTH + 1] = "\0";
+    char pwd[WIFI_PASSWORD_MAX_LENGTH + 1]   = "\0";
     // Static STA
     IPAddress local_IP      = {DEFAULT_WIFI_LOCAL_IP_ADDRESS[0], DEFAULT_WIFI_LOCAL_IP_ADDRESS[1], DEFAULT_WIFI_LOCAL_IP_ADDRESS[2], DEFAULT_WIFI_LOCAL_IP_ADDRESS[3]};
     IPAddress gateway_IP    = {DEFAULT_WIFI_GATEWAY_IP_ADDRESS[0], DEFAULT_WIFI_GATEWAY_IP_ADDRESS[1], DEFAULT_WIFI_GATEWAY_IP_ADDRESS[2], DEFAULT_WIFI_GATEWAY_IP_ADDRESS[3]};
@@ -68,12 +65,12 @@ struct express_wifi {
     boolean is_static_IP    = DEFAULT_WIFI_IS_STATIC_IP;
     boolean is_station_mode = DEFAULT_WIFI_MODE_STATION;
     // Soft AP
-    char softap_ssid[MAX_SSID + 1] = DEFAULT_WIFI_SOFTAP_SSID;
-    char softap_pwd[MAX_PWD + 1]   = DEFAULT_WIFI_SOFTAP_PASSWORD;
+    char softap_ssid[WIFI_SSID_MAX_LENGTH + 1] = DEFAULT_WIFI_SOFTAP_SSID;
+    char softap_pwd[WIFI_PASSWORD_MAX_LENGTH + 1]   = DEFAULT_WIFI_SOFTAP_PASSWORD;
     IPAddress softap_local_IP      = {DEFAULT_WIFI_SOFTAP_LOCAL_IP_ADDRESS[0], DEFAULT_WIFI_SOFTAP_LOCAL_IP_ADDRESS[1], DEFAULT_WIFI_SOFTAP_LOCAL_IP_ADDRESS[2], DEFAULT_WIFI_SOFTAP_LOCAL_IP_ADDRESS[3]};
     IPAddress softap_gateway_IP    = {DEFAULT_WIFI_SOFTAP_GATEWAY_IP_ADDRESS[0], DEFAULT_WIFI_SOFTAP_GATEWAY_IP_ADDRESS[1], DEFAULT_WIFI_SOFTAP_GATEWAY_IP_ADDRESS[2], DEFAULT_WIFI_SOFTAP_GATEWAY_IP_ADDRESS[3]};
     IPAddress softap_subnet_mask   = {DEFAULT_WIFI_SOFTAP_SUBNET_MASK[0], DEFAULT_WIFI_SOFTAP_SUBNET_MASK[1], DEFAULT_WIFI_SOFTAP_SUBNET_MASK[2], DEFAULT_WIFI_SOFTAP_SUBNET_MASK[3]};
-    char host_name[MAX_SSID + 1]   = DEFAULT_WIFI_HOST_NAME;
+    char host_name[WIFI_SSID_MAX_LENGTH + 1]   = DEFAULT_WIFI_HOST_NAME; // TODO this wont work without the null end "\0";
   };
   wifiData_t wifiData;
 

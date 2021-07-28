@@ -24,6 +24,8 @@
   #include "express_status_led.h"
 #endif
 
+ #include "express_update.hpp"
+
 void setup() {
   eLED.init();
   eLED.on();
@@ -33,9 +35,12 @@ void setup() {
   eMenu.version = {1, 2, 3};
 
   eWifi.init(&WiFi);
+  eLocalUpdate.init();
+  
 }
 
 void loop() {
 
   eMenu.update();
+  eLocalUpdate.update();
 }

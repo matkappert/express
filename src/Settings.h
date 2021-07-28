@@ -71,6 +71,8 @@
 
   #define WIFI_CONNECTION_RETRIES 8
 
+  #define WIFI_SSID_MAX_LENGTH     (uint8_t)32
+  #define WIFI_PASSWORD_MAX_LENGTH (uint8_t)64
   /**
    *  Configures static IP address
    *  Automatic [false]
@@ -95,6 +97,16 @@
 
   #define DEFAULT_WIFI_HOST_NAME  "express"
   // clang-format on
+
+  /**
+   * UPDATE
+   *
+   */
+  #define USE_LOCAL_UPDATE                 true
+  #define LOCAL_UPDATE_PORT                3232
+  #define DEFAULT_LOCAL_PASSWORD           "admin"
+  #define LOCAL_UPDATE_PASSWORD_MAX_LENGTH (uint8_t)64
+  #define LOCAL_UPDATE_USE_LED true
 
   /**
    *  CULEX

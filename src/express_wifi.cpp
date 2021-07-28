@@ -241,13 +241,13 @@ struct express_wifi::menu_wifi_ssid_t : MENU_STRUCT {
     }
   }
   void manualNetwork(const char *ssid, const uint8_t length) {
-    if (length <= MAX_SSID) {
+    if (length <= WIFI_SSID_MAX_LENGTH) {
       eWifi.wifiData.ssid[0] = '\0';
       strcpy(eWifi.wifiData.ssid, ssid);
       eWifi.saveWiFiSettings();
       eMenu.info("New SSID:").pln(eWifi.wifiData.ssid);
     } else {
-      eMenu.error(__func__).p("to long! max: ").pln(MAX_SSID);
+      eMenu.error(__func__).p("to long! max: ").pln(WIFI_SSID_MAX_LENGTH);
     }
   }
 } menu_wifi_ssid;
@@ -269,13 +269,13 @@ struct express_wifi::menu_wifi_password_t : MENU_STRUCT {
     }
   }
   void setPassword(const char *password, const uint8_t length) {
-    if (length <= MAX_PWD) {
+    if (length <= WIFI_PASSWORD_MAX_LENGTH) {
       eWifi.wifiData.pwd[0] = '\0';
       strcpy(eWifi.wifiData.pwd, password);
       eWifi.saveWiFiSettings();
       eMenu.info("New Password:").pln(eMenu.mask(eWifi.wifiData.pwd, 2));
     } else {
-      eMenu.error("Password to long! max:").pln(MAX_PWD);
+      eMenu.error("Password to long! max:").pln(WIFI_PASSWORD_MAX_LENGTH);
     }
   }
 } menu_wifi_password;
