@@ -99,7 +99,8 @@ struct express_culex {
 
  public:
   vector<CULEX_TRANSPORT *> CULEX_TRANSPORT_VECTORS;
-  uint32_t timestamp = 0;
+
+  
 
  public:
   void init(WiFiClass *WiFi);
@@ -109,7 +110,17 @@ struct express_culex {
   //   void topic(char *buf, CULEX_TOPICS_ENUM topic);
   // void payload(char *buf);
   // void metric(char *buf, CULEX_TRANSPORT *transport);
-  // void birth();
+  void birth();
+
+uint8_t _message_bdSeq = 0;
+  uint32_t timestamp = 0;
+  uint32_t _message_seq = 0;
+  uint32_t message_seq(){
+    _message_seq++;
+    return _message_seq;
+  }
+
+  
  public:
   StaticJsonDocument<CULEX_PAYLOAD_SIZE> doc;
 
@@ -119,6 +130,7 @@ struct express_culex {
   };
   void DATA_EVENT(const char *topic, byte *payload, unsigned int length);
 
+  void generateTopic(char *ptr, const char *method);
   void generateTopics();
   void generatePayload(CULEX_TRANSPORT *transport);
 

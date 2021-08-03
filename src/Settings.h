@@ -81,19 +81,19 @@
   #define DEFAULT_WIFI_IS_STATIC_IP (boolean) false
 
   // clang-format off
-  #define  DEFAULT_WIFI_LOCAL_IP_ADDRESS (uint8_t[4]) { 10,0,0,150 }
-  #define  DEFAULT_WIFI_GATEWAY_IP_ADDRESS (uint8_t[4]) { 10,0,0,1 }
-  #define  DEFAULT_WIFI_SUBNET_MASK (uint8_t[4]) { 255,255,0,0 }
+  #define DEFAULT_WIFI_LOCAL_IP_ADDRESS (uint8_t[4]) { 10,0,0,150 }
+  #define DEFAULT_WIFI_GATEWAY_IP_ADDRESS (uint8_t[4]) { 10,0,0,1 }
+  #define DEFAULT_WIFI_SUBNET_MASK (uint8_t[4]) { 255,255,0,0 }
 
   /** optional */
-  #define  DEFAULT_WIFI_PRIMARY_DNS (uint8_t[4]) { 1,1,1,1 }
-  #define  DEFAULT_WIFI_SECONDARY_DNS  (uint8_t[4]) { 8,8,8,8 }
+  #define DEFAULT_WIFI_PRIMARY_DNS (uint8_t[4]) { 1,1,1,1 }
+  #define DEFAULT_WIFI_SECONDARY_DNS  (uint8_t[4]) { 8,8,8,8 }
 
   #define DEFAULT_WIFI_SOFTAP_SSID  "EXPRESS"
   #define DEFAULT_WIFI_SOFTAP_PASSWORD  "12345678"
-  #define  DEFAULT_WIFI_SOFTAP_LOCAL_IP_ADDRESS (uint8_t[4]) { 10,0,0,1 }
-  #define  DEFAULT_WIFI_SOFTAP_GATEWAY_IP_ADDRESS (uint8_t[4]) { 10,0,0,1 }
-  #define  DEFAULT_WIFI_SOFTAP_SUBNET_MASK (char[4]) { 255,255,255,0 }
+  #define DEFAULT_WIFI_SOFTAP_LOCAL_IP_ADDRESS (uint8_t[4]) { 10,0,0,1 }
+  #define DEFAULT_WIFI_SOFTAP_GATEWAY_IP_ADDRESS (uint8_t[4]) { 10,0,0,1 }
+  #define DEFAULT_WIFI_SOFTAP_SUBNET_MASK (char[4]) { 255,255,255,0 }
 
   #define DEFAULT_WIFI_HOST_NAME  "express"
   // clang-format on
@@ -106,7 +106,7 @@
   #define LOCAL_UPDATE_PORT                3232
   #define DEFAULT_LOCAL_PASSWORD           "admin"
   #define LOCAL_UPDATE_PASSWORD_MAX_LENGTH (uint8_t)64
-  #define LOCAL_UPDATE_USE_LED true
+  #define LOCAL_UPDATE_USE_LED             true
 
   /**
    *  CULEX

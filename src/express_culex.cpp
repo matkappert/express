@@ -39,30 +39,32 @@ void express_culex::DATA_EVENT(const char *topic, byte *payload, unsigned int le
   }
 }
 
-struct trans_DATA_t : CULEX_TRANSPORT {
-  trans_DATA_t() : CULEX_TRANSPORT({(char *)"DATA", (EXPRESS_TYPE_ENUM)Boolean}) {}
-} trans_DATA;
+// struct trans_DATA_t : CULEX_TRANSPORT {
+//   trans_DATA_t() : CULEX_TRANSPORT({(char *)"DATA", (EXPRESS_TYPE_ENUM)Boolean}) {}
+// } trans_DATA;
 
 struct trans_bdSeq_t : CULEX_TRANSPORT {
-  trans_bdSeq_t() : CULEX_TRANSPORT({(char *)"bdSeq", (EXPRESS_TYPE_ENUM)UInt8}) {}
+  trans_bdSeq_t() : CULEX_TRANSPORT({(char *)"bdSeq", (EXPRESS_TYPE_ENUM)UInt8}) {
+    this->value_uint8 = &eCulex._message_bdSeq;
+  }
   void callback(JsonObject objectValue, const char *type) override {
     eMenu.info(__func__).pln();
   }
 } trans_bdSeq;
 
-// struct trans_system_coreVoltage_t : CULEX_TRANSPORT {
-//   float coreVoltage = 0.00;
-//   trans_system_coreVoltage_t() : CULEX_TRANSPORT({(char *)"system/coreVoltage", (EXPRESS_TYPE_ENUM)Float}) {
-//     this->server_permissions = READ_PERMISSION;
-//     this->user_permissions   = READ_PERMISSION;
-//     this->value_float        = &coreVoltage;
-//     this->timer              = 1000;
-//   }
-//   boolean update() {
-//     coreVoltage = eUtil.getVoltage();
-//     return true;
-//   }
-// } trans_system_coreVoltage;
+struct trans_system_coreVoltage_t : CULEX_TRANSPORT {
+  float coreVoltage = 0.00;
+  trans_system_coreVoltage_t() : CULEX_TRANSPORT({(char *)"system/coreVoltage", (EXPRESS_TYPE_ENUM)Float}) {
+    this->server_permissions = READ_PERMISSION;
+    this->user_permissions   = READ_PERMISSION;
+    this->value_float        = &coreVoltage;
+    this->timer              = 5000;
+  }
+  boolean update() {
+    coreVoltage = eUtil.getVoltage();
+    return true;
+  }
+} trans_system_coreVoltage;
 
 void express_culex::init(WiFiClass *WiFi) {
   _WiFi = WiFi;
@@ -70,10 +72,17 @@ void express_culex::init(WiFiClass *WiFi) {
   //   postTopics();
 }
 
+void express_culex::generateTopic(char *ptr, const char *method) {
+  //*  [NAMESPACE]/[USER_TOKEN]/[DEVICE_ID]/[METHOD]
+  sprintf(ptr, "%s/%s/%s/%s", DEFAULT_CULEX_NAMESPACE, DEFAULT_CULEX_USER_TOKEN, DEFAULT_CULEX_DEVICE_ID, method);
+  eMenu.debug(__func__).p("method: ").pln(method);
+}
+
 void express_culex::generateTopics() {
   //*  [NAMESPACE]/[USER_TOKEN]/[DEVICE_ID]/#
   for (auto &transport : CULEX_TRANSPORT_VECTORS) {
-    sprintf(transport->topic, "%s/%s/%s/%s", DEFAULT_CULEX_NAMESPACE, DEFAULT_CULEX_USER_TOKEN, DEFAULT_CULEX_DEVICE_ID, transport->name);
+    generateTopic(transport->topic, transport->name);
+    // sprintf(transport->topic, "%s/%s/%s/%s", DEFAULT_CULEX_NAMESPACE, DEFAULT_CULEX_USER_TOKEN, DEFAULT_CULEX_DEVICE_ID, transport->name);
     eMenu.debug(__func__).p("name: ").p(transport->name).p(", topic: ").pln(transport->topic);
   }
 }
@@ -84,20 +93,45 @@ void express_culex::postTopics() {
   }
 }
 
+void express_culex::birth() {
+  char payload[CULEX_PAYLOAD_SIZE];
+  StaticJsonDocument<CULEX_PAYLOAD_SIZE> doc;
+  doc["timestamp"] = millis();
+  // JsonArray metrics = doc.to<JsonArray>();
+  JsonArray metrics = doc.createNestedArray("metrics");
+
+  for (auto &transport : CULEX_TRANSPORT_VECTORS) {
+    JsonObject metric     = metrics.createNestedObject();
+    metric["name"]        = transport->name;
+    metric["dataType"]    = EXPRESS_TYPE_CHAR[transport->type];
+    metric["value"]       = valueToBuffer(transport);
+    metric["permissions"] = ((uint16_t)(((uint8_t)transport->user_permissions << 8) | (uint8_t)transport->server_permissions));
+  }
+  
+  doc["seq"] = message_seq();
+  size_t n   = serializeJson(doc, payload);
+  eMenu.debug(__func__).pln("\npayload:");
+  serializeJsonPretty(doc, Serial);
+
+  char topic[CULEX_TOPIC_SIZE];
+  generateTopic(topic, "BIRTH");
+  culexClient.publish(topic, payload, n);
+}
+
 void express_culex::generatePayload(CULEX_TRANSPORT *transport) {
   char payload[256];
   StaticJsonDocument<256> doc;
   doc["name"] = transport->name;
   // doc["timestamp"] = millis();
-  doc["dataType"] = EXPRESS_TYPE_CHAR[transport->type];
-  doc["value"]    = valueToBuffer(transport);
+  // doc["dataType"] = EXPRESS_TYPE_CHAR[transport->type];
+  doc["value"] = valueToBuffer(transport);
 
   //* permissions = [USER, SERVER] 0x0F0F; uint16_t wd = ((uint16_t)d2 << 8) | d1
-  doc["permissions"] = ((uint16_t)(((uint8_t)transport->user_permissions << 8) | (uint8_t)transport->server_permissions));
+  // doc["permissions"] = ((uint16_t)(((uint8_t)transport->user_permissions << 8) | (uint8_t)transport->server_permissions));
 
   size_t n = serializeJson(doc, payload);
-  culexClient.publish(transport->topic, payload, n);
   eMenu.debug(__func__).p("name: ").p(transport->name).p("topic: \n").p(transport->topic).p("\npayload: \n").pln(payload);
+  culexClient.publish(transport->topic, payload, n);
 }
 
 void express_culex::update() {
@@ -113,10 +147,11 @@ void express_culex::update() {
         eMenu.info(__func__).p("connection timeout: ").pln(connection_timeout_wait);
       }
     }
-  } else if (isConnected && (culexClient.state() != 0 || !_WiFi->isConnected())) {  // if culex is NOT connected && wifi is NOT connected
-    isConnected = false;
+  } else if (this->isConnected && (culexClient.state() != 0 || !_WiFi->isConnected())) {  // if culex is NOT connected && wifi is NOT connected
+    this->isConnected = false;
     eMenu.error(__func__).p("connection terminated!").pln();
-  } else {
+  } 
+   if(this->isConnected){
     for (auto &transport : CULEX_TRANSPORT_VECTORS) {
       if (transport->timer > 0) {
         if (millis() - transport->timer_last >= transport->timer) {
@@ -146,30 +181,14 @@ boolean express_culex::connect() {
     culexClient.setSocketTimeout(DEFAULT_CULEX_SET_SOCKET_TIMEOUT);
     culexClient.setCallback(eCulex.STATIC_DATA_EVENT);
 
-    // eMenu.debug("Generatating the last will and testament ...").pln();
-    // trans_bdSeq.POST = true;
-    // char topic_buf[128];
-    // char payload_buf[256];
-    // topic(topic_buf, NDEATH);
-    // payload(payload_buf);
-    //   trans_bdSeq.value.UInt8++;
-
     if (culexClient.connect(PROJECT_NAME, DEFAULT_CULEX_USERNAME, DEFAULT_CULEX_PASSWORD, trans_bdSeq.topic, CULEX_LWT_QOS, CULEX_LWT_RETAIN, "{\"birth\":false}", CULEX_LWT_CLEAN_SESSION)) {
-      isConnected = true;
+      this->isConnected = true;
       eMenu.info(__func__).p("connected").pln();
       connection_timeout_wait = CULEX_CONNECTION_WAIT;
       connection_timeout_last = 0;
-      //? https://arduinojson.org/v6/how-to/use-arduinojson-with-pubsubclient/
-      //   char buffer[256];
-      //   size_t n = serializeJson(doc, buffer);
-      //   client.publish("outTopic", buffer, n);
 
-      // culexClient.publish("outTopic", "hello world");
-      // culexClient.subscribe("inTopic");
-      // birth();
-      trans_bdSeq.value_uint8++;
-      eMenu.debug(__func__).p("subscribing to: ").pln(trans_DATA.topic);
-      culexClient.subscribe(trans_DATA.topic);
+      birth();
+
 #if (USE_LED == true)
       hasErrorBecauseNoConnection = false;
       eLED.removeTask(2);
@@ -181,7 +200,6 @@ boolean express_culex::connect() {
         hasErrorBecauseNoConnection = true;
         eLED.addTask(2, TASK::ERROR, 2);
       }
-
 #endif
       eMenu.error(__func__).p("connection failed! ").p(culexClient.state()).p(" ").pln(MQTT_CONNECTION_ERRORS_CHAR[culexClient.state() + 4]);
       return false;
@@ -189,27 +207,6 @@ boolean express_culex::connect() {
     return false;
   }
 }
-
-// void express_culex::birth() {
-//   char topic_buf[128];
-//   char payload_buf[256];
-//   //   for (auto &transport : CULEX_TRANSPORT_VECTORS) {
-//   //     transport->POST = true;
-//   //   }
-//   //   topic(topic_buf, NBIRTH);
-// //   payload(payload_buf);
-
-//   culexClient.publish(topic_buf, payload_buf);
-
-//   //   culexClient.setCallback(eCulex.STATIC_DATA_EVENT);
-//     topic(topic_buf, DATA);
-//   culexClient.subscribe(trans_DATA_t.topic);
-// }
-
-// void express_culex::DATA_EVENT(const char topic, byte* payload, unsigned int length){
-//     eMenu.debug("Culex DATA topic:").p(topic).p(", length:").p(length).pln(", payload...");
-//     eMenu.debug(payload).pln();
-// }
 
 String express_culex::valueToBuffer(CULEX_TRANSPORT *transport) {
   char buffer[(20 * sizeof(char)) + 1];
